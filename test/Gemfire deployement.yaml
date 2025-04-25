@@ -1,0 +1,81 @@
+[root@bastion gemfire]# oc get deploy sit-gemfire-management-console -o yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    alpha.image.policy.openshift.io/resolve-names: '*'
+    app.openshift.io/route-disabled: "false"
+    deployment.kubernetes.io/revision: "2"
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"sit-gemfire-management-console:latest","namespace":"sit-cache-gemfire"},"fieldPath":"spec.template.spec.containers[?(@.name==\"sit-gemfire-management-console\")].image","pause":"false"}]'
+    openshift.io/generated-by: OpenShiftWebConsole
+  creationTimestamp: "2025-01-28T13:39:24Z"
+  generation: 2
+  labels:
+    app: sit-gemfire-management-console
+    app.kubernetes.io/component: sit-gemfire-management-console
+    app.kubernetes.io/instance: sit-gemfire-management-console
+    app.kubernetes.io/name: sit-gemfire-management-console
+    app.kubernetes.io/part-of: sit-gemfire-management-console-app
+    app.openshift.io/runtime-namespace: sit-cache-gemfire
+  name: sit-gemfire-management-console
+  namespace: sit-cache-gemfire
+  resourceVersion: "225388955"
+  uid: a8339df2-3cf3-466e-a293-35eb64327376
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: sit-gemfire-management-console
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: "2025-01-29T13:18:51Z"
+        openshift.io/generated-by: OpenShiftWebConsole
+      creationTimestamp: null
+      labels:
+        app: sit-gemfire-management-console
+        deployment: sit-gemfire-management-console
+    spec:
+      containers:
+      - image: image-registry.openshift-image-registry.svc:5000/sit-cache-gemfire/sit-gemfire-management-console@sha256:47392b4aa48535b6960b31e980486490da6f6309e308f80500ef96c0532e0d40
+        imagePullPolicy: Always
+        name: sit-gemfire-management-console
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 1
+  conditions:
+  - lastTransitionTime: "2025-01-28T13:39:24Z"
+    lastUpdateTime: "2025-01-29T13:19:03Z"
+    message: ReplicaSet "sit-gemfire-management-console-684c955847" has successfully
+      progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2025-04-10T14:18:51Z"
+    lastUpdateTime: "2025-04-10T14:18:51Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  observedGeneration: 2
+  readyReplicas: 1
+  replicas: 1
+  updatedReplicas: 1
+[root@bastion gemfire]#

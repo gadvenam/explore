@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: preprod-transaction-virtualservice
+spec:
+  gateways:
+  - preprod-istio-system/preprod-gateway
+  hosts:
+  - preprod.epay.sbi.apps-crc.testing #preprod.epay.sbi
+  http:
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: java-springboot-basic.preprod-transaction.svc.cluster.local
+        port:
+         number: 8081

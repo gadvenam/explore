@@ -1,0 +1,74 @@
+# Only one IstioCNI resource is shared by all control planes(perf and preprod) in a cluster, and you must update this resource independent of other cluster resources.
+# oc new-project istio-cni
+apiVersion: sailoperator.io/v1
+kind: IstioCNI
+metadata:
+  name: default
+spec:
+  namespace: istio-cni
+  version: v1.24-latest
+
+
+---
+# This Istio resource is used to install perf Istio control planes in perf-istio-ystem namespaces of the cluster.
+#oc new-project perf-istio-system
+#oc label namespace perf-istio-system istio-discovery=perf-istio
+kind: Istio
+apiVersion: sailoperator.io/v1
+metadata:
+  name: perf-istio
+spec:
+  namespace: perf-istio-system
+  updateStrategy:
+    type: InPlace
+    inactiveRevisionDeletionGracePeriodSeconds: 30
+  version: v1.24-latest
+  values:
+    meshConfig:
+      discoverySelectors:
+        - matchLabels:
+            istio-discovery: perf-istio
+      extensionProviders:
+        - name: prometheus
+          prometheus: {}
+      #  - name: otel
+      #    opentelemetry:
+      #      port: 4317
+      #      service: otel-collector.opentelemetrycollector-3.svc.cluster.local
+
+---
+# This Istio resource is used to install preprod Istio control planes in preprod-istio-ystem namespaces of the cluster.   
+#oc new-project preprod-istio-system
+#oc label namespace preprod-istio-system istio-discovery=preprod-istio         
+kind: Istio
+apiVersion: sailoperator.io/v1
+metadata:
+  name: preprod-istio
+spec:
+  namespace: preprod-istio-system
+  updateStrategy:
+    type: InPlace
+    inactiveRevisionDeletionGracePeriodSeconds: 30
+  version: v1.24-latest
+  values:
+    meshConfig:
+      discoverySelectors:
+        - matchLabels:
+            istio-discovery: preprod-istio     
+      extensionProviders:
+        - name: prometheus
+          prometheus: {}
+      #  - name: otel
+      #    opentelemetry:
+      #      port: 4317
+      #      service: otel-collector.opentelemetrycollector-3.svc.cluster.local 
+---
+# Application namespaces with istio discovery labels and injection labels
+# oc create namespace perf-transaction
+# oc label namespace perf-transaction istio-discovery=perf-istio
+# oc label namespace perf-transaction istio.io/rev=perf-istio
+
+
+# oc create namespace preprod-transaction
+# oc label namespace preprod-transaction istio-discovery=preprod-istio
+# oc label namespace preprod-transaction istio.io/rev=preprod-istio

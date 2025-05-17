@@ -1,0 +1,135 @@
+
+# create ingress gateway for preprod-istio-system
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: preprod-istio-gateway
+  namespace: preprod-istio-system
+spec:
+  selector:
+    matchLabels:
+      istio: preprod-istio-gateway
+  template:
+    metadata:
+      annotations:
+        inject.istio.io/templates: gateway 
+      labels:
+        istio: preprod-istio-gateway
+        #sidecar.istio.io/inject: "true"
+        istio.io/rev: preprod-istio
+    spec:
+      containers:
+        - name: istio-proxy
+          image: auto 
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          ports:
+          - containerPort: 15090
+            protocol: TCP
+            name: http-envoy-prom
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 1024Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+      securityContext:
+        sysctls:
+        - name: net.ipv4.ip_unprivileged_port_start
+          value: "0"
+      #serviceAccountName: secret-reader 
+---
+
+# HPA for preprod-istio-gateway
+# This Horizontal Pod Autoscaler (HPA) configuration is used to automatically scale the number of replicas of the Istio ingress gateway deployment based on CPU utilization.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: preprod-istio-gateway-hpa
+  namespace: preprod-istio-system
+spec:
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - resource:
+      name: cpu
+      target:
+        averageUtilization: 80
+        type: Utilization
+    type: Resource
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: preprod-istio-gateway
+
+---
+
+# create ingress gateway service for preprod-istio-system
+apiVersion: v1
+kind: Service
+metadata:
+  name: preprod-istio-gateway-service
+  namespace: preprod-istio-system
+spec:
+  type: ClusterIP 
+  selector:
+    istio: preprod-istio-gateway
+  ports:
+    - name: status-port
+      port: 15021
+      protocol: TCP
+      targetPort: 15021
+    - name: http2
+      port: 80
+      protocol: TCP
+      targetPort: 80
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: 443
+
+
+---
+
+# create route for istio ingress gateway
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: preprod-istio-gateway-route
+  namespace: preprod-istio-system
+spec:
+  host: preprod.epay.sbi.apps-crc.testing #preprod.epay.sbi
+  port:
+    targetPort: http2
+  to:
+    kind: Service
+    name: preprod-istio-gateway-service
+    weight: 100
+  wildcardPolicy: None
+
+---
+
+#Gateway for preprod-istio-system
+apiVersion: networking.istio.io/v1
+kind: Gateway
+metadata:
+  name: preprod-gateway
+  namespace: preprod-istio-system
+spec:
+  selector:
+    #istio: ingressgateway
+    istio: preprod-istio-gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - preprod.epay.sbi.apps-crc.testing #preprod.epay.sbi

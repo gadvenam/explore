@@ -1,0 +1,18 @@
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: perf-transaction-virtualservice
+spec:
+  gateways:
+  - perf-istio-system/perf-gateway
+  hosts:
+  - perf.epay.sbi.apps-crc.testing #perf.epay.sbi
+  http:
+  - match:
+    - uri:
+        prefix: "/"
+    route:
+    - destination:
+        host: java-springboot-basic.perf-transaction.svc.cluster.local
+        port:
+         number: 8081

@@ -1,0 +1,267 @@
+# For DEV Cluster have 3 environments (DEV, SIT, UAT) , each environment having 3 dedicated worker nodes, having all workloads including Application Microservices, Kafka, Gemfire etc.
+# DEV ENV ---> Namespace: dev-kafka
+# SIT ENV ---> Namespace: sit-kafka
+# UAT ENV ---> Namespace: uat-kafka
+# namespace may have environment labels like DVE,SIT,UAT with node selector for scheduling pods on specific nodes.
+
+# For preprod/prod environment, we have 3 dedicated worker nodes for Kafka brokers and 3 dedicated worker nodes for Kafka controllers,no application pods on these nodes.
+# Create node labels/taints  for scheduling kafka brokers and controllers on specific nodes 
+# oc label node kafkabroker1.preprod.sbi      node-role.kubernetes.io/worker=kafka-broker 
+# oc label node kafkacontroller1.preprod.sbi  node-role.kubernetes.io/worker=kafka-controller
+# oc taint node kafkabroker1.preprod.sbi      node-role.kubernetes.io/worker=kafka-broker:NoSchedule
+# oc taint node kafkacontroller1.preprod.sbi  node-role.kubernetes.io/worker=kafka-controller:NoSchedule
+
+# Stoarge and resources(request/limits) to be changed as per the environment
+# CPU memory resource request/limits need to verified
+
+
+# This is a sample Kafka cluster configuration using Strimzi with JBOD storage
+
+
+# Config in KafkaNodePool vs Kafka CR ----------------
+# If a configuration property is not specified in KafkaNodePool, it is inherited from the Kafka resource. Configuration specified in the KafkaNodePool resource takes precedence if set in both resources.
+
+# "kraftMetadata" property-----------------------------
+# In KRaft mode, each node (including brokers and controllers) stores a copy of the Kafka cluster’s metadata log on one of its data volumes. By default, the log is stored on the volume with the lowest ID, but you can specify a different volume using the "kraftMetadata" property.
+# For controller-only nodes, storage is exclusively for the metadata log. Since the log is always stored on a single volume, using JBOD storage with multiple volumes does not improve performance or increase available disk space.
+
+
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: dev-kafka-nodepool-controller
+  labels:
+    strimzi.io/cluster: dev-kafka-cluster
+    #labels:for pod scheduling on partcular node /Node selector /taint and toleration
+    #node-role.kubernetes.io/worker: kafka-controller
+  namespace: dev-kafka
+spec:
+  replicas: 3
+  #nodeSelector:
+  #  node-role.kubernetes.io/worker: kafka-controller
+  #tolerations:
+  #  - key: node-role.kubernetes.io/worker
+  #    operator: Equal
+  #    value: kafka-controller
+  #    effect: NoSchedule
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 10Gi # Size of the metadata log to be arrived
+        kraftMetadata: shared
+        deleteClaim: false
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: "2"
+    limits:
+      memory: 16Gi
+      cpu: "4"
+  #For pod anti-affinity
+  # This configuration ensures that the Kafka brokers are not scheduled on the same node, which helps to improve availability and fault tolerance.
+  template:
+      pod:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: strimzi.io/name
+                      operator: In
+                      values:
+                        - dev-kafka-cluster-kafka-controller # strimzi label pods like CLUSTER-NAME-kafka-controller
+                topologyKey: "kubernetes.io/hostname"
+    # ...
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: dev-kafka-nodepool-broker
+  labels:
+    strimzi.io/cluster: dev-kafka-cluster
+    #labels:for pod scheduling on partcular node /Node selector /taint and toleration
+    #node-role.kubernetes.io/worker: kafka-broker
+  namespace: dev-kafka
+spec:
+  replicas: 3
+  #nodeSelector:
+  #  node-role.kubernetes.io/worker: kafka-broker
+  #tolerations:
+  #  - key: node-role.kubernetes.io/worker
+  #    operator: Equal
+  #    value: kafka-broker
+  #    effect: NoSchedule
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 10Gi
+        # Indicates that this directory/volume will be used to store Kraft metadata log (default lower voulme id)
+        kraftMetadata: shared
+        deleteClaim: false
+      - id: 1
+        type: persistent-claim
+        size: 10Gi
+        deleteClaim: false
+  resources:
+    requests:
+      memory: 16Gi
+      cpu: "4"
+    limits:
+      memory: 32Gi
+      cpu: "8"
+  #For pod anti-affinity
+  # This configuration ensures that the Kafka brokers are not scheduled on the same node, which helps to improve availability and fault tolerance.
+  template:
+      pod:
+        affinity:
+          podAntiAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              - labelSelector:
+                  matchExpressions:
+                    - key: strimzi.io/name
+                      operator: In
+                      values:
+                        - dev-kafka-cluster-kafka # strimzi label pods like CLUSTER-NAME-kafka
+                topologyKey: "kubernetes.io/hostname"
+    # ...
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: dev-kafka-cluster
+  namespace: dev-kafka
+  annotations:
+    strimzi.io/node-pools: enabled
+    strimzi.io/kraft: enabled
+spec:
+  kafka:
+    version: 3.9.0
+    metadataVersion: 3.9
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+      #- name: external
+      #  port: 9094
+      #  type: route
+      #  tls: true
+      #  authentication:
+      #    type: tls
+      #  configuration:
+      #      brokerCertChainAndKey:
+      #      secretName: my-secret
+      #      certificate: my-certificate.crt
+      #      key: my-key.key
+    config:
+      inter.broker.protocol.version: "3.9" #check if required
+      offsets.topic.replication.factor: 3 # default check if required
+      transaction.state.log.replication.factor: 3 # default check if required
+      # transaction.state.log.min.isr is just dedicated min.insync.replicas but for the __transaction_state topic (internal topic created when you start using transactions). So it's just overriding the min.insync.replicas.
+      transaction.state.log.min.isr: 2 # default check if required
+      default.replication.factor: 3
+      min.insync.replicas: 2
+      ack: all # check if it is valid
+      terminationGracePeriodSeconds: 120
+      # 7 Days actually required or can be set less, kafka cluster level or topic level
+      #log.retention.hours: 168  # 7 days = 168 hours ( can be set in topic level also need to check)
+      #log.retention.bytes: 1073741824 # 1 GB (can be set in topic level also need to check)
+      #log.retention.check.interval.ms: 300000 # 5 minutes (can be set in topic level also need to check)
+
+    # Logging configuration (optional)
+    logging:
+      type: inline
+      loggers:
+        kafka.root.logger.level: INFO
+    # Readiness probe (optional)
+    readinessProbe:
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    # Liveness probe (optional)
+    livenessProbe:
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    # JVM options (optional)
+    jvmOptions:
+      -Xms: 8192m
+      -Xmx: 8192m
+    # Custom image (optional)
+    #image: my-org/my-image:latest
+    # Authorization (optional)
+    #authorization:
+    #  type: simple
+    # Rack awareness (optional)
+    #rack:
+    #  topologyKey: topology.kubernetes.io/zone
+
+    # Metrics configuration (optional)
+    # Metrics configuration for Kafka Cluster, Cruise Control , Kafka Connect ,Miirror Maker2
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: my-config-map
+          key: my-key
+  # Entity Operator (recommended)
+  #entityOperator:
+  #  topicOperator: {}
+  #  userOperator: {}
+  entityOperator:
+    topicOperator:
+      watchedNamespace: my-topic-namespace
+      reconciliationIntervalMs: 60000
+      # Resources requests and limits (recommended)
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: "1"
+        limits:
+          memory: 512Mi
+          cpu: "1"
+      # Logging configuration (optional)
+      logging:
+        type: inline
+        loggers:
+          rootLogger.level: INFO
+    userOperator:
+      watchedNamespace: my-topic-namespace
+      reconciliationIntervalMs: 60000
+      # Resources requests and limits (recommended)
+      resources:
+        requests:
+          memory: 512Mi
+          cpu: "1"
+        limits:
+          memory: 512Mi
+          cpu: "1"
+      # Logging configuration (optional)
+      logging:
+        type: inline
+        loggers:
+          rootLogger.level: INFO
+  # Kafka Exporter (optional)
+  kafkaExporter:
+    # ...
+  # Cruise Control (optional)
+  #cruiseControl: {}
+  # To be explored empty{} , auto reblancing, with goals, add brokers , full, remove brokers, add disk to existing brokers, remove disks, etc.
+  cruiseControl:
+    # ...
+
+  # Mirror Maker 2 Configuration ( TLS based + IdenttiyReplicationPolicy)
+
+  # KafkaConnect and KafkaConnector Configuration --> Gemfire CDC
+
+  # Kafka Console Operator Configuration + Prometheus(Grafana) Monitoring

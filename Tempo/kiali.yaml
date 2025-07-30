@@ -1,0 +1,93 @@
+We need to add this perf-istio
+
+values:
+    meshConfig:
+      enableTracing: true
+      extensionProviders:
+      - name: otel
+        opentelemetry:
+          port: 4317
+          service: dev-collector.tracing-system.svc.cluster.local 
+=======================================================================
+apiVersion: batch/v1
+kind: Job
+metadata:
+ name: generate-traces-grpc
+ namespace: perf-istio-system
+spec:
+ template:
+   spec:
+     containers:
+     - name: telemetrygen
+       image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.92.0
+       args:
+       - traces
+       - --otlp-endpoint=dev-collector.perf-istio-system.svc:4317
+       - --service=grpc
+       - --otlp-insecure
+       - --traces=10
+     restartPolicy: Never
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+ name: generate-traces-http
+ namespace: perf-istio-system
+spec:
+ template:
+   spec:
+     containers:
+       - name: telemetrygen
+         image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:v0.92.0
+         args:
+           - traces
+           - --otlp-endpoint=dev-collector.perf-istio-system.svc:4318
+           - --otlp-http
+           - --otlp-insecure
+           - --service=http
+           - --traces=10
+     restartPolicy: Never
+===================================
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata:
+  name: otel-demo
+  namespace: perf-istio-system
+spec:
+  tracing:
+    - providers:
+        - name: otel                  
+      randomSamplingPercentage: 100
+
+==============================================================================================
+spec:
+  deployment:
+    cluster_wide_access: true
+    instance_name: kiali
+    logger:
+      log_level: info
+    view_only_mode: false
+  external_services:
+    tracing:
+      auth:
+        insecure_skip_verify: true
+        type: bearer
+        use_kiali_token: true
+      enabled: true
+      in_cluster_url: 'https://simplest-gateway.perf-tempo.svc.cluster.local:8080/api/traces/v1/dev'
+      namespace_selector: true
+      provider: jaeger
+      query_timeout: 30
+      url: 'https://tempo-simplest-gateway-perf-tempo.apps.preprod.epay.sbi/api/traces/v1/dev/search'
+      use_grpc: false
+    grafana:
+      enabled: false
+    prometheus:
+      auth:
+        type: bearer
+        use_kiali_token: true
+      thanos_proxy:
+        enabled: true
+      url: 'https://thanos-querier.openshift-monitoring.svc.cluster.local:9091'
+
+

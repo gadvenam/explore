@@ -1,0 +1,3 @@
+[osuser@bastion ~]$ oc exec -it perf-kafka-cluster-broker-0 -c kafka -- env - bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group br-group
+
+Error: Consumer group 'br-group' does not exist.

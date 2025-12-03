@@ -1,0 +1,230 @@
+perf-kafka-cluster
+
+
+curl -sLk "https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/tools/report.sh" | bash -s -- --namespace=perf-kafka --cluster=perf-kafka-cluster --out-dir=./backup
+============================================================================================================
+[root@bastion backup]# ./report.sh --namespace=perf-kafka --cluster=perf-kafka-cluster --out-dir=./backup
+deployments
+    deployment.apps/perf-kafka-cluster-cruise-control
+    deployment.apps/perf-kafka-cluster-entity-operator
+statefulsets
+replicasets
+    replicaset.apps/perf-kafka-cluster-cruise-control-76475666fc
+    replicaset.apps/perf-kafka-cluster-cruise-control-84b75b89c4
+    replicaset.apps/perf-kafka-cluster-entity-operator-8647ff89f8
+    replicaset.apps/perf-kafka-cluster-entity-operator-868fc7d5c5
+configmaps
+    configmap/perf-kafka-cluster-broker-0
+    configmap/perf-kafka-cluster-broker-1
+    configmap/perf-kafka-cluster-broker-2
+    configmap/perf-kafka-cluster-controller-3
+    configmap/perf-kafka-cluster-controller-4
+    configmap/perf-kafka-cluster-controller-5
+    configmap/perf-kafka-cluster-cruise-control-config
+    configmap/perf-kafka-cluster-entity-topic-operator-config
+    configmap/perf-kafka-cluster-entity-user-operator-config
+secrets
+    secret/my-user
+    secret/perf-kafka-cluster-clients-ca
+    secret/perf-kafka-cluster-clients-ca-cert
+    secret/perf-kafka-cluster-cluster-ca
+    secret/perf-kafka-cluster-cluster-ca-cert
+    secret/perf-kafka-cluster-cluster-operator-certs
+    secret/perf-kafka-cluster-cruise-control-api
+    secret/perf-kafka-cluster-cruise-control-certs
+    secret/perf-kafka-cluster-entity-topic-operator-cc-api
+    secret/perf-kafka-cluster-entity-topic-operator-certs
+    secret/perf-kafka-cluster-entity-user-operator-certs
+    secret/perf-kafka-cluster-kafka-brokers
+services
+    service/perf-kafka-cluster-cruise-control
+    service/perf-kafka-cluster-kafka-bootstrap
+    service/perf-kafka-cluster-kafka-brokers
+poddisruptionbudgets
+    poddisruptionbudget.policy/perf-kafka-cluster-kafka
+roles
+    role.rbac.authorization.k8s.io/perf-kafka-cluster-entity-operator
+rolebindings
+    rolebinding.rbac.authorization.k8s.io/perf-kafka-cluster-entity-topic-operator-role
+    rolebinding.rbac.authorization.k8s.io/perf-kafka-cluster-entity-user-operator-role
+networkpolicies
+    networkpolicy.networking.k8s.io/perf-kafka-cluster-entity-operator
+    networkpolicy.networking.k8s.io/perf-kafka-cluster-network-policy-cruise-control
+    networkpolicy.networking.k8s.io/perf-kafka-cluster-network-policy-kafka
+pods
+    pod/perf-kafka-cluster-broker-0
+    pod/perf-kafka-cluster-broker-1
+    pod/perf-kafka-cluster-broker-2
+    pod/perf-kafka-cluster-controller-3
+    pod/perf-kafka-cluster-controller-4
+    pod/perf-kafka-cluster-controller-5
+    pod/perf-kafka-cluster-cruise-control-76475666fc-96pg4
+    pod/perf-kafka-cluster-entity-operator-868fc7d5c5-956tz
+persistentvolumeclaims
+    persistentvolumeclaim/data-0-perf-kafka-cluster-broker-0
+    persistentvolumeclaim/data-0-perf-kafka-cluster-broker-1
+    persistentvolumeclaim/data-0-perf-kafka-cluster-broker-2
+    persistentvolumeclaim/data-0-perf-kafka-cluster-controller-3
+    persistentvolumeclaim/data-0-perf-kafka-cluster-controller-4
+    persistentvolumeclaim/data-0-perf-kafka-cluster-controller-5
+    persistentvolumeclaim/data-1-perf-kafka-cluster-broker-0
+    persistentvolumeclaim/data-1-perf-kafka-cluster-broker-1
+    persistentvolumeclaim/data-1-perf-kafka-cluster-broker-2
+ingresses
+routes
+clusterroles
+    clusterrole.rbac.authorization.k8s.io/strimzi-entity-operator
+    clusterrole.rbac.authorization.k8s.io/strimzi-kafka-broker
+    clusterrole.rbac.authorization.k8s.io/strimzi-kafka-client
+clusterrolebindings
+clusteroperator
+draincleaner
+customresources
+    kafkaconnectors.kafka.strimzi.io
+        epay-oracle-source
+    kafkaconnects.kafka.strimzi.io
+        perf-kafka-connect
+    kafkamirrormaker2s.kafka.strimzi.io
+        perf-kafka-mirror-maker
+    kafkanodepools.kafka.strimzi.io
+        broker
+        controller
+    kafkas.kafka.strimzi.io
+        perf-kafka-cluster
+    kafkatopics.kafka.strimzi.io
+        merchant-sms-notification-topic
+    kafkausers.kafka.strimzi.io
+        my-user
+    strimzipodsets.core.strimzi.io
+        perf-kafka-cluster-broker
+        perf-kafka-cluster-controller
+        perf-kafka-mirror-maker-mirrormaker2
+events
+logs
+    perf-kafka-cluster-broker-0
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+    perf-kafka-cluster-broker-1
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+    perf-kafka-cluster-broker-2
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+    perf-kafka-cluster-controller-3
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+    perf-kafka-cluster-controller-4
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+    perf-kafka-cluster-controller-5
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+Defaulted container "kafka" out of: kafka, dynatrace-operator (init)
+    perf-kafka-cluster-entity-operator-868fc7d5c5-956tz
+    perf-kafka-cluster-cruise-control-76475666fc-96pg4
+Defaulted container "cruise-control" out of: cruise-control, dynatrace-operator (init)
+Defaulted container "cruise-control" out of: cruise-control, dynatrace-operator (init)
+Defaulted container "cruise-control" out of: cruise-control, dynatrace-operator (init)
+Defaulted container "cruise-control" out of: cruise-control, dynatrace-operator (init)
+Report file report-02-12-2025_12-05-24.zip created
+[root@bastion backup]#
+===========================================================================================
+oc annotate kafka perf-kafka-cluster strimzi.io/pause-reconciliation="true"
+=================================================================================
+[root@bastion backup]# oc annotate kafka perf-kafka-cluster strimzi.io/pause-reconciliation="true"
+kafka.kafka.strimzi.io/perf-kafka-cluster annotated
+[root@bastion backup]# oc get po
+NAME                                                  READY   STATUS             RESTARTS          AGE
+perf-kafka-cluster-broker-0                           1/1     Running            0                 18d
+perf-kafka-cluster-broker-1                           1/1     Running            0                 49d
+perf-kafka-cluster-broker-2                           1/1     Running            2 (17d ago)       42d
+perf-kafka-cluster-controller-3                       1/1     Running            0                 49d
+perf-kafka-cluster-controller-4                       1/1     Running            0                 49d
+perf-kafka-cluster-controller-5                       1/1     Running            0                 49d
+perf-kafka-cluster-cruise-control-76475666fc-96pg4    1/1     Running            0                 18d
+perf-kafka-cluster-entity-operator-868fc7d5c5-956tz   2/2     Running            0                 18d
+perf-kafka-mirror-maker-mirrormaker2-0                0/1     CrashLoopBackOff   13458 (21s ago)   49d
+[root@bastion backup]# oc get strimzipodsets.core.strimzi.io
+NAME                                   PODS   READY PODS   CURRENT PODS   AGE
+perf-kafka-cluster-broker              3      3            3              83d
+perf-kafka-cluster-controller          3      3            3              83d
+perf-kafka-mirror-maker-mirrormaker2   1      0            1              83d
+[root@bastion backup]#
+====================================================================================
+[root@bastion backup]#  oc delete strimzipodsets perf-kafka-cluster-broker perf-kafka-cluster-controller
+strimzipodset.core.strimzi.io "perf-kafka-cluster-broker" deleted
+strimzipodset.core.strimzi.io "perf-kafka-cluster-controller" deleted
+[root@bastion backup]# oc get pods
+NAME                                                  READY   STATUS             RESTARTS            AGE
+perf-kafka-cluster-broker-0                           1/1     Terminating        0                   18d
+perf-kafka-cluster-broker-1                           1/1     Terminating        0                   49d
+perf-kafka-cluster-broker-2                           0/1     Terminating        2                   42d
+perf-kafka-cluster-controller-3                       0/1     Terminating        0                   49d
+perf-kafka-cluster-cruise-control-76475666fc-96pg4    1/1     Running            0                   18d
+perf-kafka-cluster-entity-operator-868fc7d5c5-956tz   2/2     Running            0                   18d
+perf-kafka-mirror-maker-mirrormaker2-0                0/1     CrashLoopBackOff   13458 (3m27s ago)   49d
+[root@bastion backup]#
+=============================================================================================================
+oc annotate kafka perf-kafka-cluster strimzi.io/pause-reconciliation="false" --overwrite
+===========================================================================================
+[osuser@bastion ~]$ oc get po
+NAME                                                  READY   STATUS    RESTARTS            AGE
+perf-kafka-cluster-broker-0                           1/1     Running   0                   114s
+perf-kafka-cluster-broker-1                           1/1     Running   0                   114s
+perf-kafka-cluster-broker-2                           1/1     Running   0                   114s
+perf-kafka-cluster-controller-3                       1/1     Running   0                   114s
+perf-kafka-cluster-controller-4                       1/1     Running   0                   114s
+perf-kafka-cluster-controller-5                       1/1     Running   0                   114s
+perf-kafka-cluster-cruise-control-76475666fc-96pg4    1/1     Running   23 (44s ago)        18d
+perf-kafka-cluster-entity-operator-868fc7d5c5-956tz   2/2     Running   0                   18d
+perf-kafka-mirror-maker-mirrormaker2-0                0/1     Running   13470 (5m29s ago)   49d
+[osuser@bastion ~]$
+=========================================================================================================
+oc exec -it perf-kafka-cluster-broker-0 -c kafka -- env - bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group transaction-consumers
+
+./kafka-consumer-groups.sh --bootstrap-server localhost:9092 --list
+========================================================================================================
+[osuser@bastion ~]$ oc exec -it perf-kafka-cluster-broker-0 -c kafka -- env - bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --describe --group transaction-consumers
+
+GROUP                 TOPIC                                PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG             CONSUMER-ID                                                           HOST            CLIENT-ID
+transaction-consumers transaction_push_verification_topic  1          0               0               0               consumer-transaction-consumers-1-192430f3-151c-45d7-a133-f1d28be51bd1 /172.16.58.92   consumer-transaction-consumers-1
+transaction-consumers transaction_email_notification_topic 3          0               0               0               consumer-transaction-consumers-6-35a78a70-cb06-4af6-8c01-58024a362c3e /172.16.24.123  consumer-transaction-consumers-6
+transaction-consumers process_bookingDetails_topic         1          6               6               0               consumer-transaction-consumers-3-1681c760-dd4c-4488-8ac5-f11067cef690 /172.16.20.252  consumer-transaction-consumers-3
+transaction-consumers transaction_push_verification_topic  3          0               0               0               consumer-transaction-consumers-1-45a4bd78-f268-4f1e-950d-f8a8ef4a78cb /172.16.16.232  consumer-transaction-consumers-1
+transaction-consumers transaction_email_notification_topic 2          0               0               0               consumer-transaction-consumers-6-336bfcff-9dc5-459f-be9e-e012993ec2aa /172.16.56.51   consumer-transaction-consumers-6
+transaction-consumers transaction_push_verification_topic  0          0               0               0               consumer-transaction-consumers-1-051e0ce9-5fa0-4d32-946c-bd02b677163d /172.16.55.18   consumer-transaction-consumers-1
+transaction-consumers process_bulk_refund_topic            0          3               3               0               consumer-transaction-consumers-5-29fd20f2-be39-455d-920d-3193dbaf353c /172.16.19.50   consumer-transaction-consumers-5
+transaction-consumers transaction_sms_notification_topic   3          0               0               0               consumer-transaction-consumers-4-226b0051-5d18-437f-a1c7-4d6e236eea06 /172.16.58.92   consumer-transaction-consumers-4
+transaction-consumers process_bulk_refund_topic            2          5               5               0               consumer-transaction-consumers-5-56c1507e-1edf-4451-9711-8b7e13b62b18 /172.16.56.51   consumer-transaction-consumers-5
+transaction-consumers transaction_sms_notification_topic   0          0               0               0               consumer-transaction-consumers-4-066627cf-aa20-4985-9e59-dde2fcb28ad8 /172.16.55.19   consumer-transaction-consumers-4
+transaction-consumers process_bulk_refund_topic            3          2               2               0               consumer-transaction-consumers-5-71881423-fd28-44d1-b542-41d7fba0d200 /172.16.63.174  consumer-transaction-consumers-5
+transaction-consumers transaction_email_notification_topic 1          0               0               0               consumer-transaction-consumers-6-26a3cc00-ef66-4b0f-8d94-c160fb8304f4 /172.16.23.103  consumer-transaction-consumers-6
+transaction-consumers transaction_email_notification_topic 0          0               0               0               consumer-transaction-consumers-6-064f7c6e-c71e-4757-b8b8-9dbf8ab65f2f /172.16.10.72   consumer-transaction-consumers-6
+transaction-consumers transaction_sms_notification_topic   2          0               0               0               consumer-transaction-consumers-4-1e99b17e-0ba9-44b1-9cef-cd06061e648c /172.16.16.232  consumer-transaction-consumers-4
+transaction-consumers recon_update_settlement_status_topic 0          0               0               0               consumer-transaction-consumers-2-01e6bfa9-f51a-4ac8-af06-ca1ed878c4f4 /172.16.63.174  consumer-transaction-consumers-2
+transaction-consumers process_bookingDetails_topic         0          6               6               0               consumer-transaction-consumers-3-0e7293c0-6a86-4d3d-9385-0fc9da0698b3 /172.16.56.50   consumer-transaction-consumers-3
+transaction-consumers process_bookingDetails_topic         3          8               8               0               consumer-transaction-consumers-3-1b94492d-b899-4bee-8723-bd3224245135 /172.16.24.123  consumer-transaction-consumers-3
+transaction-consumers transaction_push_verification_topic  2          0               0               0               consumer-transaction-consumers-1-38d55a9a-89ab-41bd-90e2-d4dff15b0c76 /172.16.61.177  consumer-transaction-consumers-1
+transaction-consumers process_bookingDetails_topic         2          8               8               0               consumer-transaction-consumers-3-19ba9fec-2c50-458b-9051-333ff93d86fb /172.16.55.18   consumer-transaction-consumers-3
+transaction-consumers transaction_sms_notification_topic   1          0               0               0               consumer-transaction-consumers-4-1e960496-3f49-488b-9647-9bd959898d1c /172.16.24.124  consumer-transaction-consumers-4
+transaction-consumers process_bulk_refund_topic            1          4               4               0               consumer-transaction-consumers-5-464ab1c8-cc5e-48d5-bcdd-821ae833f300 /172.16.55.18   consumer-transaction-consumers-5[osuser@bastion ~]$
+========================================================================================================================================
+oc exec -it perf-kafka-cluster-broker-0 -c kafka -- env - bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --from-beginning --topic transaction_email_notification_topic --group transaction-consumers
+
+=================================================================================
+Case Number for process
+https://access.redhat.com/support/cases/#/case/04311707
+
+
+

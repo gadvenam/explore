@@ -1,0 +1,527 @@
+###############################################################################
+# 1. NAMESPACES
+###############################################################################
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-gitlab-cicd
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-epay-common
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-gemfire
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-gemfire-operator
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-istio-system
+  labels:
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-kafka
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-kafka-cdc
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-tempo
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-cni
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dynatrace
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-kiali
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-kafka-console
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-admin
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-frontend
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-kms
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-merchant
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-rns
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-notification
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-simulators
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: prod-dr-transaction
+  labels:
+    eip: prod-dr-cluster
+    dynatrace.com/inject: "true"
+    istio-discovery: prod-dr-istio
+    istio.io/rev: prod-dr-istio
+
+###############################################################################
+# 2. SERVICE ACCOUNT
+###############################################################################
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+
+###############################################################################
+# 3. CLUSTER ROLE
+###############################################################################
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: role-gitlab-deploy-istio-kafka-eip
+rules:
+- apiGroups: ["sailoperator.io"]
+  resources: ["istios", "istiocnis", "istiorevisions"]
+  verbs: ["*"]
+- apiGroups: ["networking.istio.io"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["security.istio.io"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["k8s.ovn.org"]
+  resources: ["egressips"]
+  verbs: ["*"]
+- apiGroups: ["kafka.strimzi.io"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["security.openshift.io"]
+  resources: ["securitycontextconstraints"]
+  verbs: ["*"]
+- apiGroups: ["monitoring.coreos.com"]
+  resources: ["servicemonitors", "podmonitors", "prometheusrules"]
+  verbs: ["*"]
+
+###############################################################################
+# 4. CLUSTER ROLE BINDING
+###############################################################################
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: role-gitlab-sail-istio-admin-binding
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: role-gitlab-deploy-istio-kafka-eip
+  apiGroup: rbac.authorization.k8s.io
+
+###############################################################################
+# 5. ROLE BINDINGS (NAMESPACE ADMIN)
+###############################################################################
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-admin-binding
+  namespace: prod-dr-admin
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-epay-common-binding
+  namespace: prod-dr-epay-common
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-frontend-binding
+  namespace: prod-dr-frontend
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-gemfire-binding
+  namespace: prod-dr-gemfire
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-gemfire-operator-binding
+  namespace: prod-dr-gemfire-operator
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-istio-system-binding
+  namespace: prod-dr-istio-system
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-kafka-binding
+  namespace: prod-dr-kafka
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-kafka-cdc-binding
+  namespace: prod-dr-kafka-cdc
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-kms-binding
+  namespace: prod-dr-kms
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-kms-binding
+  namespace: prod-dr-rns
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-merchant-binding
+  namespace: prod-dr-merchant
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-notification-binding
+  namespace: prod-dr-notification
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-simulators-binding
+  namespace: prod-dr-simulators
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-tempo-binding
+  namespace: prod-dr-tempo
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-transaction-binding
+  namespace: prod-dr-transaction
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-istio-cni-binding
+  namespace: prod-dr-istio-cni
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-dynatrace-binding
+  namespace: prod-dr-dynatrace
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-kiali-binding
+  namespace: prod-dr-kiali
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-gitlabcicd-binding
+  namespace: prod-dr-gitlab-cicd
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gitlab-deployer-kafka-console-binding
+  namespace: prod-dr-kafka-console
+subjects:
+- kind: ServiceAccount
+  name: prod-dr-gitlab-deployer-sa
+  namespace: prod-dr-gitlab-cicd
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+
+###############################################################################
+# 6. KAFKA NODES (LABELS + TAINTS)
+###############################################################################
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: kafka1.dc.prod.epay.sbi
+  labels:
+    workload-type: kafka
+spec:
+  taints:
+  - key: workload-type
+    value: kafka
+    effect: NoSchedule
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: kafka2.dc.prod.epay.sbi
+  labels:
+    workload-type: kafka
+spec:
+  taints:
+  - key: workload-type
+    value: kafka
+    effect: NoSchedule
+---
+apiVersion: v1
+kind: Node
+metadata:
+  name: kafka3.dc.prod.epay.sbi
+  labels:
+    workload-type: kafka
+spec:
+  taints:
+  - key: workload-type
+    value: kafka
+    effect: NoSchedule
